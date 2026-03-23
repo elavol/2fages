@@ -4,6 +4,7 @@ import { decrypt } from "../crypto";
 import { generateCode, getRemainingSeconds } from "../totp";
 import { getPeriod } from "../types";
 import {
+  type Screen,
   showPassphraseModal,
   showConfirmModal,
   showToast,
@@ -11,7 +12,7 @@ import {
 } from "./components";
 
 interface HomeCallbacks {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: Screen) => void;
   onVaultChanged: () => void;
   getEncryptedVault: () => string | null;
   saveVault: (encrypted: string) => void;

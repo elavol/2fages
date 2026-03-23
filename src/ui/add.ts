@@ -3,12 +3,12 @@ import type { Vault } from "../types";
 import { decrypt, encrypt } from "../crypto";
 import { parseOtpauthUri } from "../totp";
 import { startScanner, stopScanner } from "../qr";
-import { showPassphraseModal, showToast } from "./components";
+import { type Screen, showPassphraseModal, showToast } from "./components";
 
 interface AddCallbacks {
   getEncryptedVault: () => string | null;
   saveVault: (encrypted: string) => void;
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: Screen) => void;
 }
 
 export function renderAdd(
