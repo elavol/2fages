@@ -1,5 +1,5 @@
 // src/ui/add.ts
-import type { Vault } from "../types";
+import type { Account, Vault } from "../types";
 import { decrypt, encrypt } from "../crypto";
 import { parseOtpauthUri } from "../totp";
 import { startScanner, stopScanner } from "../qr";
@@ -10,6 +10,9 @@ interface AddCallbacks {
   saveVault: (encrypted: string) => void;
   onNavigate: (screen: Screen) => void;
 }
+
+// Track edit state — set by custom event from home screen
+let editingOriginal: { namespace: string; accountName: string } | null = null;
 
 export function renderAdd(
   container: HTMLElement,
@@ -64,6 +67,7 @@ export function renderAdd(
   // Listen for edit events from home screen
   const editHandler = (e: Event) => {
     const detail = (e as CustomEvent).detail;
+    editingOriginal = { namespace: detail.namespace, accountName: detail.account.name };
     showManual();
     // Pre-fill form fields after render
     setTimeout(() => {
@@ -102,6 +106,7 @@ function renderManualForm(
     input.id = `add-${field.id}`;
     input.placeholder = field.placeholder;
     input.required = field.required;
+    input.autocomplete = "off";
     group.append(label, input);
     form.appendChild(group);
   }
@@ -167,7 +172,7 @@ function renderManualForm(
     const digits = parseInt((document.getElementById("add-digits") as HTMLInputElement).value) || 6;
     const period = parseInt((document.getElementById("add-period") as HTMLInputElement).value) || 30;
 
-    addAccountToVault(
+    saveAccountToVault(
       callbacks,
       namespace,
       {
@@ -202,7 +207,7 @@ function renderQrScanner(
     (decodedText) => {
       try {
         const parsed = parseOtpauthUri(decodedText);
-        addAccountToVault(callbacks, parsed.namespace, parsed.account);
+        saveAccountToVault(callbacks, parsed.namespace, parsed.account);
       } catch {
         errorDiv.textContent = "Invalid QR code. Expected an otpauth:// URI.";
         errorDiv.style.display = "block";
@@ -215,10 +220,10 @@ function renderQrScanner(
   );
 }
 
-function addAccountToVault(
+function saveAccountToVault(
   callbacks: AddCallbacks,
   namespace: string,
-  account: import("../types").Account
+  account: Account
 ): void {
   showPassphraseModal("Enter Vault Passphrase", async (passphrase) => {
     try {
@@ -227,6 +232,21 @@ function addAccountToVault(
 
       if (encrypted) {
         vault = await decrypt(encrypted, passphrase);
+      }
+
+      // If editing, remove the old account first
+      if (editingOriginal) {
+        const origNs = vault.find((n) => n.name === editingOriginal!.namespace);
+        if (origNs) {
+          origNs.accounts = origNs.accounts.filter(
+            (a) => a.name !== editingOriginal!.accountName
+          );
+          // Remove namespace if empty after removing account
+          if (origNs.accounts.length === 0) {
+            vault.splice(vault.indexOf(origNs), 1);
+          }
+        }
+        editingOriginal = null;
       }
 
       // Find or create namespace
@@ -240,7 +260,7 @@ function addAccountToVault(
 
       const newEncrypted = await encrypt(vault, passphrase);
       callbacks.saveVault(newEncrypted);
-      showToast(`Added ${account.name} to ${namespace}`);
+      showToast(`Saved ${account.name} to ${namespace}`);
       callbacks.onNavigate("home");
     } catch {
       showToast("Incorrect passphrase");

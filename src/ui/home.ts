@@ -185,7 +185,7 @@ function renderVaultList(
         setTimeout(() => {
           window.dispatchEvent(
             new CustomEvent("2fages:edit-account", {
-              detail: { namespace: ns.name, account, passphrase },
+              detail: { namespace: ns.name, account },
             })
           );
         }, 0);

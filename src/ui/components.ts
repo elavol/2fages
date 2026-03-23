@@ -118,6 +118,14 @@ export function showPassphraseModal(
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) overlay.remove();
   });
+
+  const onEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      overlay.remove();
+      document.removeEventListener("keydown", onEscape);
+    }
+  };
+  document.addEventListener("keydown", onEscape);
 }
 
 // --- Confirm Modal ---
@@ -167,6 +175,14 @@ export function showConfirmModal(
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) overlay.remove();
   });
+
+  const onEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      overlay.remove();
+      document.removeEventListener("keydown", onEscape);
+    }
+  };
+  document.addEventListener("keydown", onEscape);
 }
 
 // --- Toast ---

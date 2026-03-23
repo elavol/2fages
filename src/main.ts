@@ -26,6 +26,11 @@ function saveVault(encrypted: string): void {
   memoryVault = encrypted;
 }
 
+function clearVault(): void {
+  import("./storage").then(({ clearStorage }) => clearStorage());
+  memoryVault = null;
+}
+
 function navigate(screen: Screen): void {
   stopScanner();
   currentScreen = screen;
@@ -47,6 +52,7 @@ function render(): void {
     onVaultChanged: () => render(),
     getEncryptedVault,
     saveVault,
+    clearVault,
   };
 
   switch (currentScreen) {

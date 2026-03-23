@@ -1,6 +1,5 @@
 // src/ui/settings.ts
 import { decrypt, encrypt } from "../crypto";
-import { clearStorage } from "../storage";
 import {
   showPassphraseModal,
   showConfirmModal,
@@ -10,6 +9,7 @@ import {
 interface SettingsCallbacks {
   getEncryptedVault: () => string | null;
   saveVault: (encrypted: string) => void;
+  clearVault: () => void;
   onVaultChanged: () => void;
 }
 
@@ -64,7 +64,7 @@ export function renderSettings(
         "Clear Vault",
         "This will permanently delete all stored credentials from this device. Make sure you have exported your data first.",
         () => {
-          clearStorage();
+          callbacks.clearVault();
           callbacks.onVaultChanged();
           showToast("Vault cleared");
         },
