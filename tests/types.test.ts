@@ -1,7 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  type Account,
-  type Namespace,
   getAlgorithm,
   getDigits,
   getPeriod,

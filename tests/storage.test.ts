@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { saveEncrypted, loadEncrypted, clearStorage, isStorageAvailable } from "../src/storage";
+import { saveEncrypted, loadEncrypted, clearStorage } from "../src/storage";
 
 // Mock localStorage for Node test environment
 const mockStorage = new Map<string, string>();
@@ -7,7 +7,7 @@ const fakeLocalStorage = {
   getItem: (key: string) => mockStorage.get(key) ?? null,
   setItem: (key: string, value: string) => mockStorage.set(key, value),
   removeItem: (key: string) => mockStorage.delete(key),
-} as Storage;
+} as unknown as Storage;
 
 describe("storage", () => {
   beforeEach(() => {
