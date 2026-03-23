@@ -16,7 +16,7 @@ There are several good free and open source TOTP apps for mobile. But there is n
 - **Single HTML file** — all JS/CSS inlined, no external requests after load
 - **Never persists plain secrets** — encrypted blob in localStorage, passphrase required every time
 - **Import/export** — paste encrypted text, upload `.age` files, or scan QR codes
-- **Namespaced accounts** — organize TOTP entries by service, just like totp-cli
+- **Inline codes** — all TOTP codes visible at once with live countdown timers after unlock
 - **Mobile-friendly** — responsive design, works on any device with a modern browser
 - **Offline capable** — works without internet after initial load
 - **Dark mode** — respects system `prefers-color-scheme`
@@ -35,7 +35,7 @@ Open the hosted app at **[2fages.elavol.com](https://2fages.elavol.com)** or dow
 
 1. Copy your totp-cli credential file content (it's already age-encrypted)
 2. Go to **Import/Export** and paste it in
-3. Your namespaces and accounts will appear on the home screen
+3. Your accounts will appear on the home screen as `namespace/account`
 
 ### Generating a code
 
