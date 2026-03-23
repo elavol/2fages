@@ -23,7 +23,7 @@ There are several good free and open source TOTP apps for mobile. But there is n
 
 ## Usage
 
-Open the hosted app or download `index.html` and open it in your browser.
+Open the hosted app at **[2fages.elavol.com](https://2fages.elavol.com)** or download `dist/index.html` and open it in your browser.
 
 ### First time
 
@@ -39,10 +39,9 @@ Open the hosted app or download `index.html` and open it in your browser.
 
 ### Generating a code
 
-1. Tap an account on the home screen
-2. Enter your passphrase
-3. The TOTP code appears and is copied to your clipboard
-4. The code auto-clears after one time period
+1. Enter your passphrase to unlock the vault
+2. All TOTP codes appear inline with countdown timers
+3. Tap any code to copy it to your clipboard
 
 ## Security Model
 
