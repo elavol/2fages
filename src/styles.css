@@ -278,7 +278,7 @@ button, .btn {
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
   font-family: var(--font);
 }
 
@@ -286,7 +286,7 @@ button, .btn {
   min-height: 120px;
   resize: vertical;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .form-group input:focus,
@@ -294,6 +294,10 @@ button, .btn {
 .form-group textarea:focus {
   outline: 2px solid var(--primary);
   outline-offset: -1px;
+}
+
+.modal input[type="password"] {
+  font-size: 16px;
 }
 
 /* Modal */
