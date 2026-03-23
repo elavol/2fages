@@ -39,6 +39,13 @@ function navigate(screen: Screen): void {
 
 function render(): void {
   const app = document.getElementById("app")!;
+
+  // Clean up any active TOTP intervals from previous screen
+  const prevMain = app.querySelector("main");
+  if (prevMain && (prevMain as any).__cleanup) {
+    (prevMain as any).__cleanup();
+  }
+
   app.innerHTML = "";
 
   const nav = renderNav(currentScreen, navigate);

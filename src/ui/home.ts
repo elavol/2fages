@@ -76,7 +76,6 @@ function renderVaultPrompt(
   encrypted: string,
   callbacks: HomeCallbacks
 ): void {
-  // Show unlock prompt to display vault contents
   const div = document.createElement("div");
 
   const unlockBtn = document.createElement("button");
@@ -88,6 +87,10 @@ function renderVaultPrompt(
         const vault = await decrypt(encrypted, passphrase);
         div.innerHTML = "";
         renderVaultList(div, vault, encrypted, passphrase, callbacks);
+        // Bubble cleanup up to the container (<main> element)
+        if ((div as any).__cleanup) {
+          (container as any).__cleanup = (div as any).__cleanup;
+        }
       } catch {
         showToast("Incorrect passphrase");
       }
@@ -105,108 +108,122 @@ function renderVaultList(
   passphrase: string,
   callbacks: HomeCallbacks
 ): void {
+  // Track intervals for cleanup on navigate
+  const activeIntervals: ReturnType<typeof setInterval>[] = [];
+  (container as any).__cleanup = () => {
+    activeIntervals.forEach((id) => clearInterval(id));
+    activeIntervals.length = 0;
+  };
+
   if (vault.length === 0) {
     const p = document.createElement("p");
     p.className = "text-center text-secondary";
-    p.textContent = "No accounts yet. Add one from the Add tab.";
+    p.textContent = "No accounts yet. Add one from the menu.";
     container.appendChild(p);
     return;
   }
 
+  // Build flat list
+  interface FlatAccount {
+    namespace: string;
+    account: Account;
+    displayName: string;
+  }
+
+  const flatAccounts: FlatAccount[] = [];
   for (const ns of vault) {
+    for (const acc of ns.accounts) {
+      flatAccounts.push({
+        namespace: ns.name,
+        account: acc,
+        displayName: ns.name ? `${ns.name}/${acc.name}` : acc.name,
+      });
+    }
+  }
+
+  flatAccounts.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+  const list = document.createElement("div");
+  list.className = "account-list";
+
+  for (const { namespace, account, displayName } of flatAccounts) {
+    const period = getPeriod(account.timePeriod);
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "account-card";
 
-    const header = document.createElement("div");
-    header.className = "card-header";
-    const h3 = document.createElement("h3");
-    h3.textContent = ns.name || "(default)";
-    const chevron = document.createElement("span");
-    chevron.className = "chevron";
-    chevron.textContent = "\u25B6";
-    header.append(h3, chevron);
+    // Top row: name + TOTP code
+    const topRow = document.createElement("div");
+    topRow.className = "account-top-row";
 
-    const list = document.createElement("ul");
-    list.className = "account-list";
-    list.style.display = "none";
+    const nameEl = document.createElement("div");
+    nameEl.className = "account-name";
+    nameEl.textContent = displayName;
 
-    let open = false;
-    header.addEventListener("click", () => {
-      open = !open;
-      list.style.display = open ? "block" : "none";
-      chevron.classList.toggle("open", open);
+    const codeEl = document.createElement("div");
+    codeEl.className = "inline-totp-code";
+    codeEl.setAttribute("role", "button");
+    codeEl.setAttribute("aria-label", "Copy code");
+    codeEl.title = "Tap to copy";
+
+    // Format code with space in middle (e.g., "123 456")
+    function formatCode(code: string): string {
+      const mid = Math.ceil(code.length / 2);
+      return code.slice(0, mid) + " " + code.slice(mid);
+    }
+
+    // Generate initial code
+    let currentCode = generateCode(account);
+    codeEl.textContent = formatCode(currentCode);
+
+    // Copy on tap — always uses currentCode closure
+    codeEl.addEventListener("click", () => {
+      copyToClipboard(currentCode).then((ok) => {
+        if (ok) showToast("Copied!");
+      });
     });
 
-    for (const account of ns.accounts) {
-      const item = document.createElement("li");
-      item.className = "account-item";
+    topRow.append(nameEl, codeEl);
 
-      const name = document.createElement("span");
-      name.className = "name";
-      name.textContent = account.name;
+    // Timer bar
+    const timerBar = document.createElement("div");
+    timerBar.className = "inline-timer-bar";
+    const timerFill = document.createElement("div");
+    timerFill.className = "inline-timer-fill";
+    timerBar.appendChild(timerFill);
 
-      const actionsDiv = document.createElement("div");
-      actionsDiv.className = "account-actions";
+    // Bottom row: Edit + Delete
+    const actions = document.createElement("div");
+    actions.className = "account-bottom-actions";
 
-      const codeBtn = document.createElement("button");
-      codeBtn.textContent = "Code";
-      codeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        showTotpCode(container, account);
-      });
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn-icon";
+    editBtn.textContent = "Edit";
+    editBtn.addEventListener("click", () => {
+      callbacks.onNavigate("add");
+      setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent("2fages:edit-account", {
+            detail: { namespace, account },
+          })
+        );
+      }, 0);
+    });
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "delete";
-      deleteBtn.textContent = "Del";
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        showConfirmModal(
-          "Delete Account",
-          `Delete "${account.name}" from "${ns.name}"?`,
-          async () => {
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn-icon btn-danger-text";
+    delBtn.textContent = "Del";
+    delBtn.addEventListener("click", () => {
+      showConfirmModal(
+        "Delete Account",
+        `Delete "${displayName}"?`,
+        async () => {
+          const ns = vault.find((n) => n.name === namespace);
+          if (ns) {
             ns.accounts = ns.accounts.filter((a) => a !== account);
             if (ns.accounts.length === 0) {
               vault.splice(vault.indexOf(ns), 1);
             }
-            const { encrypt } = await import("../crypto");
-            const newEncrypted = await encrypt(vault, passphrase);
-            callbacks.saveVault(newEncrypted);
-            callbacks.onVaultChanged();
           }
-        );
-      });
-
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Edit";
-      editBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        callbacks.onNavigate("add");
-        // Dispatch custom event with edit data after navigation
-        setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent("2fages:edit-account", {
-              detail: { namespace: ns.name, account },
-            })
-          );
-        }, 0);
-      });
-
-      actionsDiv.append(codeBtn, editBtn, deleteBtn);
-      item.append(name, actionsDiv);
-      list.appendChild(item);
-    }
-
-    // Namespace delete button
-    const nsDeleteBtn = document.createElement("button");
-    nsDeleteBtn.className = "btn-danger mt-16";
-    nsDeleteBtn.textContent = `Delete "${ns.name}" namespace`;
-    nsDeleteBtn.style.cssText = "font-size:12px;padding:6px 12px;width:auto;";
-    nsDeleteBtn.addEventListener("click", () => {
-      showConfirmModal(
-        "Delete Namespace",
-        `Delete "${ns.name}" and all ${ns.accounts.length} account(s) within it?`,
-        async () => {
-          vault.splice(vault.indexOf(ns), 1);
           const { encrypt } = await import("../crypto");
           const newEncrypted = await encrypt(vault, passphrase);
           callbacks.saveVault(newEncrypted);
@@ -215,68 +232,40 @@ function renderVaultList(
       );
     });
 
-    card.append(header, list, nsDeleteBtn);
-    container.appendChild(card);
+    actions.append(editBtn, delBtn);
+    card.append(topRow, timerBar, actions);
+    list.appendChild(card);
+
+    // Update timer every second
+    let lastPeriodIndex = Math.floor(Date.now() / 1000 / period);
+
+    const updateTimer = () => {
+      const remaining = getRemainingSeconds(period);
+      const fraction = remaining / period;
+
+      // Check for period rollover — skip transition on reset
+      const currentPeriodIndex = Math.floor(Date.now() / 1000 / period);
+      if (currentPeriodIndex !== lastPeriodIndex) {
+        lastPeriodIndex = currentPeriodIndex;
+        currentCode = generateCode(account);
+        codeEl.textContent = formatCode(currentCode);
+
+        // Reset bar without transition to avoid reverse-fill animation
+        timerFill.style.transition = "none";
+        timerFill.style.width = "100%";
+        // Re-enable transition on next frame
+        requestAnimationFrame(() => {
+          timerFill.style.transition = "width 1s linear";
+        });
+      } else {
+        timerFill.style.width = `${fraction * 100}%`;
+      }
+    };
+
+    updateTimer();
+    const intervalId = setInterval(updateTimer, 1000);
+    activeIntervals.push(intervalId);
   }
-}
 
-function showTotpCode(container: HTMLElement, account: Account): void {
-  const period = getPeriod(account.timePeriod);
-  const code = generateCode(account);
-
-  // Try clipboard
-  copyToClipboard(code).then((ok) => {
-    if (ok) showToast("Copied to clipboard");
-  });
-
-  const display = document.createElement("div");
-  display.className = "totp-display card";
-
-  const codeEl = document.createElement("div");
-  codeEl.className = "totp-code";
-  codeEl.textContent = code;
-
-  const timerEl = document.createElement("div");
-  timerEl.className = "totp-timer";
-
-  const barOuter = document.createElement("div");
-  barOuter.className = "totp-timer-bar";
-  const barFill = document.createElement("div");
-  barFill.className = "fill";
-  barOuter.appendChild(barFill);
-
-  const dismissBtn = document.createElement("button");
-  dismissBtn.className = "btn-secondary mt-16";
-  dismissBtn.textContent = "Dismiss";
-  dismissBtn.addEventListener("click", () => {
-    clearInterval(interval);
-    display.remove();
-  });
-
-  display.append(codeEl, timerEl, barOuter, dismissBtn);
-  container.prepend(display);
-
-  const updateTimer = () => {
-    const remaining = getRemainingSeconds(period);
-    timerEl.textContent = `Expires in ${remaining}s`;
-    barFill.style.width = `${(remaining / period) * 100}%`;
-
-    if (remaining === period) {
-      // New period — regenerate code
-      const newCode = generateCode(account);
-      codeEl.textContent = newCode;
-      copyToClipboard(newCode);
-    }
-  };
-
-  updateTimer();
-  const interval = setInterval(updateTimer, 1000);
-
-  // Auto-dismiss after one full period
-  setTimeout(() => {
-    clearInterval(interval);
-    display.remove();
-    // Clear clipboard
-    copyToClipboard("");
-  }, period * 1000);
+  container.appendChild(list);
 }

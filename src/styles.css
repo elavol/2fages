@@ -232,107 +232,101 @@ button, .btn {
   box-shadow: var(--shadow);
 }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  user-select: none;
-}
-
-.card-header h3 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.card-header .chevron {
-  transition: transform 0.2s;
-  color: var(--text-secondary);
-}
-
-.card-header .chevron.open {
-  transform: rotate(90deg);
-}
-
-/* Account list */
+/* Account list — flat */
 .account-list {
-  list-style: none;
-  margin-top: 8px;
-}
-
-.account-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.account-item:hover {
-  background: var(--bg);
-}
-
-.account-item .name {
-  font-size: 14px;
-}
-
-.account-actions {
-  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.account-actions button {
-  padding: 4px 8px;
-  font-size: 12px;
-  background: none;
+.account-card {
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text-secondary);
+  border-radius: var(--radius);
+  padding: 12px;
 }
 
-.account-actions button:hover {
-  background: var(--bg);
-  color: var(--text);
+.account-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
-.account-actions .delete:hover {
-  color: var(--danger);
-  border-color: var(--danger);
-}
-
-/* TOTP code display */
-.totp-display {
-  text-align: center;
-  padding: 24px;
-}
-
-.totp-code {
-  font-family: var(--mono);
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  margin-bottom: 8px;
-}
-
-.totp-timer {
+.account-name {
   font-size: 14px;
   color: var(--text-secondary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.totp-timer-bar {
-  height: 4px;
+.inline-totp-code {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--primary);
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  user-select: all;
+  flex-shrink: 0;
+}
+
+.inline-totp-code:hover {
+  background: var(--bg);
+}
+
+.inline-totp-code:active {
+  transform: scale(0.97);
+}
+
+/* Countdown bar */
+.inline-timer-bar {
+  height: 3px;
   background: var(--border);
   border-radius: 2px;
-  margin-top: 8px;
+  margin: 8px 0;
   overflow: hidden;
 }
 
-.totp-timer-bar .fill {
+.inline-timer-fill {
   height: 100%;
   background: var(--primary);
+  border-radius: 2px;
   transition: width 1s linear;
+}
+
+/* Account actions (Edit / Del) */
+.account-bottom-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-family: var(--font);
+}
+
+.btn-icon:hover {
+  color: var(--text);
+}
+
+.btn-danger-text {
+  color: var(--danger);
+}
+
+.btn-danger-text:hover {
+  opacity: 0.8;
 }
 
 /* Forms */
