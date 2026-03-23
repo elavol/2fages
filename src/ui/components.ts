@@ -8,23 +8,84 @@ export function renderNav(
   active: Screen,
   onNavigate: (screen: Screen) => void
 ): HTMLElement {
-  const nav = document.createElement("nav");
-  const tabs: { id: Screen; label: string }[] = [
-    { id: "home", label: "Home" },
-    { id: "add", label: "Add" },
-    { id: "import-export", label: "Import/Export" },
-    { id: "settings", label: "Settings" },
+  const wrapper = document.createElement("div");
+  wrapper.className = "nav-wrapper";
+
+  // Top bar
+  const header = document.createElement("header");
+  header.className = "top-bar";
+
+  const hamburger = document.createElement("button");
+  hamburger.className = "hamburger-btn";
+  hamburger.setAttribute("aria-label", "Menu");
+  hamburger.innerHTML = "<span></span><span></span><span></span>";
+
+  const title = document.createElement("span");
+  title.className = "top-bar-title";
+  title.textContent = "2fages";
+
+  // Spacer to balance the hamburger button for centering the title
+  const spacer = document.createElement("span");
+  spacer.style.width = "36px";
+
+  header.append(hamburger, title, spacer);
+
+  // Drawer overlay
+  const overlay = document.createElement("div");
+  overlay.className = "drawer-overlay";
+
+  // Drawer
+  const drawer = document.createElement("nav");
+  drawer.className = "drawer";
+
+  const items: { label: string; screen: Screen }[] = [
+    { label: "Home", screen: "home" },
+    { label: "Add Account", screen: "add" },
+    { label: "Import / Export", screen: "import-export" },
+    { label: "Settings", screen: "settings" },
   ];
 
-  for (const tab of tabs) {
-    const btn = document.createElement("button");
-    btn.textContent = tab.label;
-    if (tab.id === active) btn.classList.add("active");
-    btn.addEventListener("click", () => onNavigate(tab.id));
-    nav.appendChild(btn);
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    overlay.classList.remove("open");
+    hamburger.classList.remove("open");
   }
 
-  return nav;
+  items.forEach(({ label, screen }) => {
+    const link = document.createElement("a");
+    link.className = "drawer-link" + (screen === active ? " active" : "");
+    link.textContent = label;
+    link.href = "#";
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeDrawer();
+      onNavigate(screen);
+    });
+    drawer.appendChild(link);
+  });
+
+  hamburger.addEventListener("click", () => {
+    const isOpen = drawer.classList.contains("open");
+    if (isOpen) {
+      closeDrawer();
+    } else {
+      drawer.classList.add("open");
+      overlay.classList.add("open");
+      hamburger.classList.add("open");
+    }
+  });
+
+  overlay.addEventListener("click", closeDrawer);
+
+  const onEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape" && document.contains(drawer) && drawer.classList.contains("open")) {
+      closeDrawer();
+    }
+  };
+  document.addEventListener("keydown", onEscape);
+
+  wrapper.append(header, overlay, drawer);
+  return wrapper;
 }
 
 // --- Passphrase Modal ---
