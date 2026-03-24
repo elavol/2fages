@@ -16,14 +16,21 @@ interface HomeCallbacks {
   onVaultChanged: () => void;
   getEncryptedVault: () => string | null;
   saveVault: (encrypted: string) => void;
+  getCachedVault: () => Vault | null;
+  setCachedVault: (v: Vault | null) => void;
 }
 
 export function renderHome(
   container: HTMLElement,
   callbacks: HomeCallbacks
 ): void {
-  const encrypted = callbacks.getEncryptedVault();
+  const cached = callbacks.getCachedVault();
+  if (cached) {
+    renderVaultList(container, cached, callbacks);
+    return;
+  }
 
+  const encrypted = callbacks.getEncryptedVault();
   if (!encrypted) {
     renderEmptyState(container, callbacks);
     return;
@@ -88,10 +95,10 @@ function renderVaultPrompt(
     showPassphraseModal("Unlock Vault", async (passphrase) => {
       try {
         const vault = await decrypt(encrypted, passphrase);
+        callbacks.setCachedVault(vault);
         div.innerHTML = "";
         div.style.cssText = "";
-        renderVaultList(div, vault, encrypted, passphrase, callbacks);
-        // Bubble cleanup up to the container (<main> element)
+        renderVaultList(div, vault, callbacks);
         if ((div as any).__cleanup) {
           (container as any).__cleanup = (div as any).__cleanup;
         }
@@ -108,8 +115,6 @@ function renderVaultPrompt(
 function renderVaultList(
   container: HTMLElement,
   vault: Vault,
-  _encrypted: string,
-  passphrase: string,
   callbacks: HomeCallbacks
 ): void {
   // Track intervals for cleanup on navigate
@@ -203,7 +208,7 @@ function renderVaultList(
     editBtn.className = "btn-icon";
     editBtn.textContent = "Edit";
     editBtn.addEventListener("click", () => {
-      showEditModal(namespace, account, vault, passphrase, callbacks);
+      showEditModal(namespace, account, vault, callbacks);
     });
 
     const delBtn = document.createElement("button");
@@ -213,18 +218,24 @@ function renderVaultList(
       showConfirmModal(
         "Delete Account",
         `Delete "${displayName}"?`,
-        async () => {
-          const ns = vault.find((n) => n.name === namespace);
-          if (ns) {
-            ns.accounts = ns.accounts.filter((a) => a !== account);
-            if (ns.accounts.length === 0) {
-              vault.splice(vault.indexOf(ns), 1);
+        () => {
+          showPassphraseModal("Enter Passphrase", async (passphrase) => {
+            try {
+              const ns = vault.find((n) => n.name === namespace);
+              if (ns) {
+                ns.accounts = ns.accounts.filter((a) => a !== account);
+                if (ns.accounts.length === 0) {
+                  vault.splice(vault.indexOf(ns), 1);
+                }
+              }
+              const newEncrypted = await encrypt(vault, passphrase);
+              callbacks.saveVault(newEncrypted);
+              callbacks.setCachedVault(vault);
+              callbacks.onVaultChanged();
+            } catch {
+              showToast("Incorrect passphrase");
             }
-          }
-          const { encrypt } = await import("../crypto");
-          const newEncrypted = await encrypt(vault, passphrase);
-          callbacks.saveVault(newEncrypted);
-          callbacks.onVaultChanged();
+          }, { submitLabel: "Continue" });
         }
       );
     });
@@ -271,7 +282,6 @@ function showEditModal(
   oldNamespace: string,
   account: Account,
   vault: Vault,
-  passphrase: string,
   callbacks: HomeCallbacks
 ): void {
   const overlay = document.createElement("div");
@@ -372,7 +382,7 @@ function showEditModal(
   actions.append(cancelBtn, saveBtn);
   form.appendChild(actions);
 
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
     const newNamespace = (document.getElementById("edit-namespace") as HTMLInputElement).value.trim();
     const newName = (document.getElementById("edit-name") as HTMLInputElement).value.trim();
@@ -381,35 +391,43 @@ function showEditModal(
     const newDigits = parseInt((document.getElementById("edit-digits") as HTMLInputElement).value) || 6;
     const newPeriod = parseInt((document.getElementById("edit-period") as HTMLInputElement).value) || 30;
 
-    // Remove old account
-    const oldNs = vault.find((n) => n.name === oldNamespace);
-    if (oldNs) {
-      oldNs.accounts = oldNs.accounts.filter((a) => a !== account);
-      if (oldNs.accounts.length === 0) {
-        vault.splice(vault.indexOf(oldNs), 1);
-      }
-    }
-
-    // Add updated account
-    let ns = vault.find((n) => n.name === newNamespace);
-    if (!ns) {
-      ns = { name: newNamespace, accounts: [] };
-      vault.push(ns);
-    }
-    ns.accounts.push({
-      name: newName,
-      token: newSecret,
-      prefix: account.prefix,
-      algorithm: newAlgorithm,
-      length: newDigits,
-      timePeriod: newPeriod === 30 ? 0 : newPeriod,
-    });
-
-    const newEncrypted = await encrypt(vault, passphrase);
-    callbacks.saveVault(newEncrypted);
     overlay.remove();
-    callbacks.onVaultChanged();
-    showToast("Account updated");
+
+    showPassphraseModal("Enter Passphrase", async (passphrase) => {
+      try {
+        // Remove old account
+        const oldNs = vault.find((n) => n.name === oldNamespace);
+        if (oldNs) {
+          oldNs.accounts = oldNs.accounts.filter((a) => a !== account);
+          if (oldNs.accounts.length === 0) {
+            vault.splice(vault.indexOf(oldNs), 1);
+          }
+        }
+
+        // Add updated account
+        let ns = vault.find((n) => n.name === newNamespace);
+        if (!ns) {
+          ns = { name: newNamespace, accounts: [] };
+          vault.push(ns);
+        }
+        ns.accounts.push({
+          name: newName,
+          token: newSecret,
+          prefix: account.prefix,
+          algorithm: newAlgorithm,
+          length: newDigits,
+          timePeriod: newPeriod === 30 ? 0 : newPeriod,
+        });
+
+        const newEncrypted = await encrypt(vault, passphrase);
+        callbacks.saveVault(newEncrypted);
+        callbacks.setCachedVault(vault);
+        callbacks.onVaultChanged();
+        showToast("Account updated");
+      } catch {
+        showToast("Incorrect passphrase");
+      }
+    }, { submitLabel: "Continue" });
   });
 
   modal.appendChild(form);

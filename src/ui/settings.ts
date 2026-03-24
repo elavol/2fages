@@ -82,6 +82,7 @@ export function renderSettings(
     <p class="text-secondary text-sm">
       TOTP code generator with age encryption.<br/>
       Compatible with <a href="https://github.com/yitsushi/totp-cli" target="_blank" rel="noopener">totp-cli</a>.<br/>
+      <a href="https://github.com/elavol/2fages" target="_blank" rel="noopener">Source code on GitHub</a><br/>
       v0.1.0
     </p>
   `;

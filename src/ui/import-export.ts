@@ -1,11 +1,14 @@
 // src/ui/import-export.ts
-import { type Screen, showToast, copyToClipboard } from "./components";
+import type { Vault } from "../types";
+import { decrypt } from "../crypto";
+import { type Screen, showPassphraseModal, showToast, copyToClipboard } from "./components";
 
 interface ImportExportCallbacks {
   getEncryptedVault: () => string | null;
   saveVault: (encrypted: string) => void;
   onVaultChanged: () => void;
   onNavigate: (screen: Screen) => void;
+  setCachedVault: (v: Vault | null) => void;
 }
 
 export function renderImportExport(
@@ -55,10 +58,7 @@ export function renderImportExport(
       showToast("Invalid format — expected age-encrypted text");
       return;
     }
-    callbacks.saveVault(text);
-    callbacks.onVaultChanged();
-    showToast("Credentials imported");
-    callbacks.onNavigate("home");
+    importAndUnlock(text, callbacks);
   });
   div.appendChild(importPasteBtn);
 
@@ -82,10 +82,7 @@ export function renderImportExport(
         showToast("Invalid file — expected age-encrypted text");
         return;
       }
-      callbacks.saveVault(text);
-      callbacks.onVaultChanged();
-      showToast("Credentials imported from file");
-      callbacks.onNavigate("home");
+      importAndUnlock(text, callbacks);
     };
     reader.readAsText(file);
   });
@@ -136,4 +133,21 @@ export function renderImportExport(
   }
 
   container.appendChild(div);
+}
+
+function importAndUnlock(
+  encryptedText: string,
+  callbacks: ImportExportCallbacks
+): void {
+  callbacks.saveVault(encryptedText);
+  showPassphraseModal("Enter Passphrase", async (passphrase) => {
+    try {
+      const vault = await decrypt(encryptedText, passphrase);
+      callbacks.setCachedVault(vault);
+      callbacks.onNavigate("home");
+      showToast("Credentials imported");
+    } catch {
+      showToast("Incorrect passphrase");
+    }
+  }, { submitLabel: "Unlock" });
 }

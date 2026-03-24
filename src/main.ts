@@ -1,5 +1,6 @@
 // src/main.ts
 import "./styles.css";
+import type { Vault } from "./types";
 import { type Screen, renderNav } from "./ui/components";
 import { renderHome } from "./ui/home";
 import { renderAdd } from "./ui/add";
@@ -10,6 +11,7 @@ import { stopScanner } from "./qr";
 
 let currentScreen: Screen = "home";
 let memoryVault: string | null = null;
+let cachedVault: Vault | null = null;
 let storageAvailable = false;
 
 function getEncryptedVault(): string | null {
@@ -29,6 +31,7 @@ function saveVault(encrypted: string): void {
 function clearVault(): void {
   import("./storage").then(({ clearStorage }) => clearStorage());
   memoryVault = null;
+  cachedVault = null;
 }
 
 function navigate(screen: Screen): void {
@@ -60,6 +63,8 @@ function render(): void {
     getEncryptedVault,
     saveVault,
     clearVault,
+    getCachedVault: () => cachedVault,
+    setCachedVault: (v: Vault | null) => { cachedVault = v; },
   };
 
   switch (currentScreen) {

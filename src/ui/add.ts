@@ -9,6 +9,7 @@ interface AddCallbacks {
   getEncryptedVault: () => string | null;
   saveVault: (encrypted: string) => void;
   onNavigate: (screen: Screen) => void;
+  setCachedVault: (v: Vault | null) => void;
 }
 
 export function renderAdd(
@@ -224,6 +225,7 @@ function saveAccountToVault(
 
       const newEncrypted = await encrypt(vault, passphrase);
       callbacks.saveVault(newEncrypted);
+      callbacks.setCachedVault(vault);
       showToast(`Saved ${account.name} to ${namespace}`);
       callbacks.onNavigate("home");
     } catch {
