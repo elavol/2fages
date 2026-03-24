@@ -1,6 +1,6 @@
 // src/ui/home.ts
 import type { Vault, Account } from "../types";
-import { decrypt } from "../crypto";
+import { decrypt, encrypt } from "../crypto";
 import { generateCode, getRemainingSeconds } from "../totp";
 import { getPeriod } from "../types";
 import {
@@ -203,19 +203,12 @@ function renderVaultList(
     editBtn.className = "btn-icon";
     editBtn.textContent = "Edit";
     editBtn.addEventListener("click", () => {
-      callbacks.onNavigate("add");
-      setTimeout(() => {
-        window.dispatchEvent(
-          new CustomEvent("2fages:edit-account", {
-            detail: { namespace, account },
-          })
-        );
-      }, 0);
+      showEditModal(namespace, account, vault, passphrase, callbacks);
     });
 
     const delBtn = document.createElement("button");
     delBtn.className = "btn-icon btn-danger-text";
-    delBtn.textContent = "Del";
+    delBtn.textContent = "Delete";
     delBtn.addEventListener("click", () => {
       showConfirmModal(
         "Delete Account",
@@ -272,4 +265,166 @@ function renderVaultList(
   }
 
   container.appendChild(list);
+}
+
+function showEditModal(
+  oldNamespace: string,
+  account: Account,
+  vault: Vault,
+  passphrase: string,
+  callbacks: HomeCallbacks
+): void {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+
+  const modal = document.createElement("div");
+  modal.className = "modal";
+
+  const h2 = document.createElement("h2");
+  h2.textContent = "Edit Account";
+  modal.appendChild(h2);
+
+  const form = document.createElement("form");
+
+  const fields = [
+    { id: "edit-namespace", label: "Namespace", value: oldNamespace },
+    { id: "edit-name", label: "Account Name", value: account.name },
+    { id: "edit-secret", label: "Secret (Base32)", value: account.token },
+  ];
+
+  for (const f of fields) {
+    const group = document.createElement("div");
+    group.className = "form-group";
+    const label = document.createElement("label");
+    label.textContent = f.label;
+    label.setAttribute("for", f.id);
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = f.id;
+    input.value = f.value;
+    input.required = true;
+    input.autocomplete = "off";
+    group.append(label, input);
+    form.appendChild(group);
+  }
+
+  // Algorithm select
+  const algoGroup = document.createElement("div");
+  algoGroup.className = "form-group";
+  const algoLabel = document.createElement("label");
+  algoLabel.textContent = "Algorithm";
+  algoLabel.setAttribute("for", "edit-algorithm");
+  const algoSelect = document.createElement("select");
+  algoSelect.id = "edit-algorithm";
+  for (const opt of ["SHA1", "SHA256", "SHA512"]) {
+    const option = document.createElement("option");
+    option.value = opt === "SHA1" ? "" : opt.toLowerCase();
+    option.textContent = opt;
+    algoSelect.appendChild(option);
+  }
+  algoSelect.value = account.algorithm;
+  algoGroup.append(algoLabel, algoSelect);
+  form.appendChild(algoGroup);
+
+  // Digits
+  const digitsGroup = document.createElement("div");
+  digitsGroup.className = "form-group";
+  const digitsLabel = document.createElement("label");
+  digitsLabel.textContent = "Digits";
+  digitsLabel.setAttribute("for", "edit-digits");
+  const digitsInput = document.createElement("input");
+  digitsInput.type = "number";
+  digitsInput.id = "edit-digits";
+  digitsInput.value = String(account.length || 6);
+  digitsInput.min = "6";
+  digitsInput.max = "8";
+  digitsGroup.append(digitsLabel, digitsInput);
+  form.appendChild(digitsGroup);
+
+  // Period
+  const periodGroup = document.createElement("div");
+  periodGroup.className = "form-group";
+  const periodLabel = document.createElement("label");
+  periodLabel.textContent = "Period (seconds)";
+  periodLabel.setAttribute("for", "edit-period");
+  const periodInput = document.createElement("input");
+  periodInput.type = "number";
+  periodInput.id = "edit-period";
+  periodInput.value = String(account.timePeriod || 30);
+  periodInput.min = "1";
+  periodGroup.append(periodLabel, periodInput);
+  form.appendChild(periodGroup);
+
+  const actions = document.createElement("div");
+  actions.className = "modal-actions";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "btn-secondary";
+  cancelBtn.textContent = "Cancel";
+  cancelBtn.addEventListener("click", () => overlay.remove());
+
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "submit";
+  saveBtn.className = "btn-primary";
+  saveBtn.textContent = "Save";
+
+  actions.append(cancelBtn, saveBtn);
+  form.appendChild(actions);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newNamespace = (document.getElementById("edit-namespace") as HTMLInputElement).value.trim();
+    const newName = (document.getElementById("edit-name") as HTMLInputElement).value.trim();
+    const newSecret = (document.getElementById("edit-secret") as HTMLInputElement).value.trim().replace(/\s/g, "");
+    const newAlgorithm = (document.getElementById("edit-algorithm") as HTMLSelectElement).value;
+    const newDigits = parseInt((document.getElementById("edit-digits") as HTMLInputElement).value) || 6;
+    const newPeriod = parseInt((document.getElementById("edit-period") as HTMLInputElement).value) || 30;
+
+    // Remove old account
+    const oldNs = vault.find((n) => n.name === oldNamespace);
+    if (oldNs) {
+      oldNs.accounts = oldNs.accounts.filter((a) => a !== account);
+      if (oldNs.accounts.length === 0) {
+        vault.splice(vault.indexOf(oldNs), 1);
+      }
+    }
+
+    // Add updated account
+    let ns = vault.find((n) => n.name === newNamespace);
+    if (!ns) {
+      ns = { name: newNamespace, accounts: [] };
+      vault.push(ns);
+    }
+    ns.accounts.push({
+      name: newName,
+      token: newSecret,
+      prefix: account.prefix,
+      algorithm: newAlgorithm,
+      length: newDigits,
+      timePeriod: newPeriod === 30 ? 0 : newPeriod,
+    });
+
+    const newEncrypted = await encrypt(vault, passphrase);
+    callbacks.saveVault(newEncrypted);
+    overlay.remove();
+    callbacks.onVaultChanged();
+    showToast("Account updated");
+  });
+
+  modal.appendChild(form);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  const onEscape = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      overlay.remove();
+      document.removeEventListener("keydown", onEscape);
+    }
+  };
+  document.addEventListener("keydown", onEscape);
 }

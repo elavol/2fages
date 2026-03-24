@@ -11,9 +11,6 @@ interface AddCallbacks {
   onNavigate: (screen: Screen) => void;
 }
 
-// Track edit state — set by custom event from home screen
-let editingOriginal: { namespace: string; accountName: string } | null = null;
-
 export function renderAdd(
   container: HTMLElement,
   callbacks: AddCallbacks
@@ -63,24 +60,6 @@ export function renderAdd(
 
   showManual();
   container.appendChild(div);
-
-  // Listen for edit events from home screen
-  const editHandler = (e: Event) => {
-    const detail = (e as CustomEvent).detail;
-    editingOriginal = { namespace: detail.namespace, accountName: detail.account.name };
-    showManual();
-    // Pre-fill form fields after render
-    setTimeout(() => {
-      (document.getElementById("add-namespace") as HTMLInputElement).value = detail.namespace;
-      (document.getElementById("add-account-name") as HTMLInputElement).value = detail.account.name;
-      (document.getElementById("add-secret") as HTMLInputElement).value = detail.account.token;
-      (document.getElementById("add-algorithm") as HTMLSelectElement).value = detail.account.algorithm;
-      (document.getElementById("add-digits") as HTMLInputElement).value = String(detail.account.length || 6);
-      (document.getElementById("add-period") as HTMLInputElement).value = String(detail.account.timePeriod || 30);
-      title.textContent = "Edit Account";
-    }, 0);
-  };
-  window.addEventListener("2fages:edit-account", editHandler, { once: true });
 }
 
 function renderManualForm(
@@ -232,21 +211,6 @@ function saveAccountToVault(
 
       if (encrypted) {
         vault = await decrypt(encrypted, passphrase);
-      }
-
-      // If editing, remove the old account first
-      if (editingOriginal) {
-        const origNs = vault.find((n) => n.name === editingOriginal!.namespace);
-        if (origNs) {
-          origNs.accounts = origNs.accounts.filter(
-            (a) => a.name !== editingOriginal!.accountName
-          );
-          // Remove namespace if empty after removing account
-          if (origNs.accounts.length === 0) {
-            vault.splice(vault.indexOf(origNs), 1);
-          }
-        }
-        editingOriginal = null;
       }
 
       // Find or create namespace
