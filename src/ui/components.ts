@@ -20,9 +20,16 @@ export function renderNav(
   hamburger.setAttribute("aria-label", "Menu");
   hamburger.innerHTML = "<span></span><span></span><span></span>";
 
+  const items: { label: string; screen: Screen }[] = [
+    { label: "Accounts", screen: "home" },
+    { label: "Add Account", screen: "add" },
+    { label: "Import / Export", screen: "import-export" },
+    { label: "Settings", screen: "settings" },
+  ];
+
   const title = document.createElement("span");
   title.className = "top-bar-title";
-  title.textContent = "2fages";
+  title.textContent = items.find((i) => i.screen === active)?.label ?? "2fages";
 
   // Spacer to balance the hamburger button for centering the title
   const spacer = document.createElement("span");
@@ -38,13 +45,6 @@ export function renderNav(
   // Drawer
   const drawer = document.createElement("nav");
   drawer.className = "drawer";
-
-  const items: { label: string; screen: Screen }[] = [
-    { label: "Home", screen: "home" },
-    { label: "Add Account", screen: "add" },
-    { label: "Import / Export", screen: "import-export" },
-    { label: "Settings", screen: "settings" },
-  ];
 
   function closeDrawer() {
     drawer.classList.remove("open");
