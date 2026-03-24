@@ -372,8 +372,33 @@ button, .btn {
   outline-offset: -1px;
 }
 
-.modal input[type="password"] {
-  font-size: 16px;
+/* Passphrase input with eye toggle */
+.passphrase-wrap {
+  position: relative;
+}
+
+.passphrase-wrap input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.eye-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eye-toggle:hover {
+  color: var(--text);
 }
 
 /* Modal */

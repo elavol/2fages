@@ -49,7 +49,7 @@ export function renderSettings(
         } catch {
           showToast("Incorrect passphrase");
         }
-      });
+      }, { submitLabel: "Continue" });
     });
     div.appendChild(changeBtn);
   }

@@ -89,6 +89,25 @@ export function renderNav(
   return wrapper;
 }
 
+// --- Eye Toggle ---
+
+const eyeOpenSvg = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const eyeClosedSvg = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
+function createEyeToggle(input: HTMLInputElement): HTMLButtonElement {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "eye-toggle";
+  btn.setAttribute("aria-label", "Toggle passphrase visibility");
+  btn.innerHTML = eyeClosedSvg;
+  btn.addEventListener("click", () => {
+    const hidden = input.type === "password";
+    input.type = hidden ? "text" : "password";
+    btn.innerHTML = hidden ? eyeOpenSvg : eyeClosedSvg;
+  });
+  return btn;
+}
+
 // --- Passphrase Modal ---
 
 export function showPassphraseModal(
@@ -118,7 +137,11 @@ export function showPassphraseModal(
   input1.id = "modal-passphrase";
   input1.autocomplete = "off";
   input1.required = true;
-  group1.append(label1, input1);
+  const toggle1 = createEyeToggle(input1);
+  const wrap1 = document.createElement("div");
+  wrap1.className = "passphrase-wrap";
+  wrap1.append(input1, toggle1);
+  group1.append(label1, wrap1);
   form.appendChild(group1);
 
   let input2: HTMLInputElement | null = null;
@@ -133,7 +156,11 @@ export function showPassphraseModal(
     input2.id = "modal-passphrase-confirm";
     input2.autocomplete = "off";
     input2.required = true;
-    group2.append(label2, input2);
+    const toggle2 = createEyeToggle(input2);
+    const wrap2 = document.createElement("div");
+    wrap2.className = "passphrase-wrap";
+    wrap2.append(input2, toggle2);
+    group2.append(label2, wrap2);
     form.appendChild(group2);
   }
 
