@@ -49,9 +49,12 @@ body {
 }
 
 #app {
-  max-width: 480px;
   margin: 0 auto;
   padding: 0 16px 32px;
+}
+
+main {
+  padding-top: 16px;
 }
 
 /* Navigation - hamburger + drawer */
@@ -94,6 +97,7 @@ body {
 
 .hamburger-btn span {
   display: block;
+  width: 100%;
   height: 2px;
   background: var(--text);
   border-radius: 1px;
@@ -232,10 +236,10 @@ button, .btn {
   box-shadow: var(--shadow);
 }
 
-/* Account list — flat */
+/* Account list — responsive grid */
 .account-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 8px;
 }
 
@@ -516,5 +520,24 @@ button, .btn {
   .error {
     background: #450a0a;
     color: #fca5a5;
+  }
+}
+
+/* Desktop: persistent sidebar + wider content */
+@media (min-width: 768px) {
+  .drawer {
+    transform: translateX(0);
+    top: 0;
+  }
+
+  #app {
+    margin-left: 260px;
+    max-width: 960px;
+  }
+
+  .hamburger-btn,
+  .hamburger-spacer,
+  .drawer-overlay {
+    display: none !important;
   }
 }

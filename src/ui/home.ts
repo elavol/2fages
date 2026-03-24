@@ -77,15 +77,19 @@ function renderVaultPrompt(
   callbacks: HomeCallbacks
 ): void {
   const div = document.createElement("div");
+  div.style.cssText =
+    "display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 120px)";
 
   const unlockBtn = document.createElement("button");
   unlockBtn.className = "btn-primary mb-16";
+  unlockBtn.style.maxWidth = "300px";
   unlockBtn.textContent = "Unlock Vault";
   unlockBtn.addEventListener("click", () => {
     showPassphraseModal("Unlock Vault", async (passphrase) => {
       try {
         const vault = await decrypt(encrypted, passphrase);
         div.innerHTML = "";
+        div.style.cssText = "";
         renderVaultList(div, vault, encrypted, passphrase, callbacks);
         // Bubble cleanup up to the container (<main> element)
         if ((div as any).__cleanup) {

@@ -26,6 +26,7 @@ export function renderNav(
 
   // Spacer to balance the hamburger button for centering the title
   const spacer = document.createElement("span");
+  spacer.className = "hamburger-spacer";
   spacer.style.width = "36px";
 
   header.append(hamburger, title, spacer);

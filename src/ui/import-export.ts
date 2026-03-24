@@ -1,10 +1,11 @@
 // src/ui/import-export.ts
-import { showToast, copyToClipboard } from "./components";
+import { type Screen, showToast, copyToClipboard } from "./components";
 
 interface ImportExportCallbacks {
   getEncryptedVault: () => string | null;
   saveVault: (encrypted: string) => void;
   onVaultChanged: () => void;
+  onNavigate: (screen: Screen) => void;
 }
 
 export function renderImportExport(
@@ -57,6 +58,7 @@ export function renderImportExport(
     callbacks.saveVault(text);
     callbacks.onVaultChanged();
     showToast("Credentials imported");
+    callbacks.onNavigate("home");
   });
   div.appendChild(importPasteBtn);
 
@@ -83,6 +85,7 @@ export function renderImportExport(
       callbacks.saveVault(text);
       callbacks.onVaultChanged();
       showToast("Credentials imported from file");
+      callbacks.onNavigate("home");
     };
     reader.readAsText(file);
   });
