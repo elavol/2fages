@@ -44,7 +44,7 @@ export function renderSettings(
               callbacks.saveVault(newEncrypted);
               showToast("Passphrase changed");
             },
-            { confirm: true }
+            { confirm: true, submitLabel: "Change Passphrase" }
           );
         } catch {
           showToast("Incorrect passphrase");

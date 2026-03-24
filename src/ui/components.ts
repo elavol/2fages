@@ -94,7 +94,7 @@ export function renderNav(
 export function showPassphraseModal(
   title: string,
   onSubmit: (passphrase: string) => void,
-  options?: { confirm?: boolean }
+  options?: { confirm?: boolean; submitLabel?: string }
 ): void {
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
@@ -154,7 +154,7 @@ export function showPassphraseModal(
   const submitBtn = document.createElement("button");
   submitBtn.type = "submit";
   submitBtn.className = "btn-primary";
-  submitBtn.textContent = "Unlock";
+  submitBtn.textContent = options?.submitLabel ?? title;
 
   actions.append(cancelBtn, submitBtn);
   form.appendChild(actions);
