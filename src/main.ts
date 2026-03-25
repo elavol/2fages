@@ -14,6 +14,57 @@ let memoryVault: string | null = null;
 let cachedVault: Vault | null = null;
 let storageAvailable = false;
 
+// Auto-lock: flush decrypted vault from memory after inactivity
+const AUTO_LOCK_MS = 15 * 60 * 1000; // 15 minutes
+const ACTIVITY_CHECK_MS = 30_000;
+let lastActivityTime = 0;
+let autoLockIntervalId: ReturnType<typeof setInterval> | null = null;
+
+function resetActivityTimer(): void {
+  lastActivityTime = Date.now();
+}
+
+function lockVault(): void {
+  cachedVault = null;
+  stopAutoLock();
+  if (currentScreen === "home") {
+    render();
+  }
+}
+
+function onVisibilityChange(): void {
+  if (document.visibilityState === "visible" && cachedVault !== null) {
+    if (Date.now() - lastActivityTime >= AUTO_LOCK_MS) {
+      lockVault();
+    }
+  }
+}
+
+function startAutoLock(): void {
+  stopAutoLock();
+  lastActivityTime = Date.now();
+  for (const evt of ["click", "keydown", "touchstart", "scroll"] as const) {
+    document.addEventListener(evt, resetActivityTimer, { passive: true });
+  }
+  document.addEventListener("visibilitychange", onVisibilityChange);
+  autoLockIntervalId = setInterval(() => {
+    if (cachedVault !== null && Date.now() - lastActivityTime >= AUTO_LOCK_MS) {
+      lockVault();
+    }
+  }, ACTIVITY_CHECK_MS);
+}
+
+function stopAutoLock(): void {
+  for (const evt of ["click", "keydown", "touchstart", "scroll"] as const) {
+    document.removeEventListener(evt, resetActivityTimer);
+  }
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+  if (autoLockIntervalId !== null) {
+    clearInterval(autoLockIntervalId);
+    autoLockIntervalId = null;
+  }
+}
+
 function getEncryptedVault(): string | null {
   if (storageAvailable) {
     return loadEncrypted();
@@ -32,6 +83,7 @@ function clearVault(): void {
   import("./storage").then(({ clearStorage }) => clearStorage());
   memoryVault = null;
   cachedVault = null;
+  stopAutoLock();
 }
 
 function navigate(screen: Screen): void {
@@ -64,7 +116,10 @@ function render(): void {
     saveVault,
     clearVault,
     getCachedVault: () => cachedVault,
-    setCachedVault: (v: Vault | null) => { cachedVault = v; },
+    setCachedVault: (v: Vault | null) => {
+      cachedVault = v;
+      if (v) startAutoLock(); else stopAutoLock();
+    },
   };
 
   switch (currentScreen) {
