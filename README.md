@@ -1,6 +1,6 @@
 # 2fages
 
-A PWA for generating TOTP codes, inspired by [totp-cli](https://github.com/yitsushi/totp-cli).
+A single-HTML-file TOTP code generator, inspired by [totp-cli](https://github.com/yitsushi/totp-cli).
 
 ## Why?
 
@@ -66,9 +66,13 @@ npm run preview      # Preview production build
 
 - Vanilla TypeScript — no framework
 - [age-encryption](https://github.com/FiloSottile/typage) (typage) — age encrypt/decrypt
-- [otpauth](https://github.com/nicedoc/otpauth) — TOTP generation
-- [html5-qrcode](https://github.com/nicedoc/html5-qrcode) — camera QR scanning
-- [Vite](https://vitejs.dev/) + [vite-plugin-singlefile](https://github.com/nicedoc/vite-plugin-singlefile) — build into single HTML
+- [otpauth](https://github.com/hectorm/otpauth) — TOTP generation
+- [html5-qrcode](https://github.com/mebjas/html5-qrcode) — camera QR scanning
+- [Vite](https://vitejs.dev/) + [vite-plugin-singlefile](https://github.com/richardtallent/vite-plugin-singlefile) — build into single HTML
+
+## Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request.
 
 ## License
 

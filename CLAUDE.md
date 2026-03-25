@@ -1,6 +1,6 @@
 # 2fages
 
-TOTP code generator PWA inspired by [totp-cli](https://github.com/yitsushi/totp-cli). Stores credentials encrypted with `age` so they can be kept anywhere public.
+Single-HTML-file TOTP code generator inspired by [totp-cli](https://github.com/yitsushi/totp-cli). Stores credentials encrypted with `age` so they can be kept anywhere public.
 
 ## Quick Reference
 
