@@ -550,14 +550,38 @@ button, .btn {
 
 /* Desktop: persistent sidebar + wider content */
 @media (min-width: 768px) {
-  .drawer {
-    transform: translateX(0);
-    top: 0;
+  #app {
+    display: flex;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0;
   }
 
-  #app {
-    margin-left: 260px;
-    max-width: 960px;
+  .nav-wrapper {
+    position: static;
+    width: 260px;
+    flex-shrink: 0;
+    z-index: auto;
+  }
+
+  .drawer {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    left: auto;
+    height: 100vh;
+    transform: none;
+    z-index: auto;
+  }
+
+  #app > main {
+    flex: 1;
+    min-width: 0;
+    padding: 16px 24px 32px;
+  }
+
+  .top-bar {
+    display: none;
   }
 
   .hamburger-btn,
