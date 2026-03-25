@@ -25,7 +25,7 @@ Single-page app with DOM-based screen swapping. No framework, no router library.
 ```
 src/
   index.html          # HTML shell
-  main.ts             # Entry point, router, DOM management
+  main.ts             # Entry point, router, DOM management, auto-lock timer
   crypto.ts            # age encrypt/decrypt via age-encryption
   totp.ts             # TOTP generation via otpauth
   storage.ts          # localStorage read/write of encrypted blob
@@ -86,6 +86,6 @@ Decrypt: ASCII-armored string → armor.decode() → Decrypter (passphrase) → 
 ## Security Rules
 
 - Decrypted secrets in JS memory only — never DOM, never storage
+- Auto-lock after 15 min inactivity — `cachedVault` flushed, UI re-locks (see `main.ts`)
 - Passphrase inputs use `type="password"`
-- Clipboard auto-clears after the code's time period
 - No analytics, no telemetry, no network calls after load

@@ -16,6 +16,7 @@ There are several good free and open source TOTP apps for mobile. But there is n
 - **Single HTML file** — all JS/CSS inlined, no external requests after load
 - **Never persists plain secrets** — encrypted blob in localStorage, passphrase required every time
 - **Import/export** — paste encrypted text, upload `.age` files, or scan QR codes
+- **Auto-lock** — vault locks automatically after 15 minutes of inactivity, flushing decrypted secrets from memory
 - **Inline codes** — all TOTP codes visible at once with live countdown timers after unlock
 - **Mobile-friendly** — responsive design, works on any device with a modern browser
 - **Offline capable** — works without internet after initial load
@@ -48,7 +49,7 @@ Open the hosted app at **[2fages.elavol.com](https://2fages.elavol.com)** or dow
 - Credentials are encrypted with [age](https://age-encryption.org/) using scrypt passphrase encryption (work factor 15)
 - The encrypted file is standard age format — you can decrypt it with `age -d` on the command line
 - Plain secrets exist only in JavaScript memory during code generation, never in the DOM or storage
-- Clipboard auto-clears after the code expires
+- Vault auto-locks after 15 minutes of inactivity, clearing decrypted data from memory
 - No analytics, no telemetry, no network calls after the page loads
 - The entire app is a single HTML file you can audit
 
