@@ -19,7 +19,7 @@ export function renderAdd(
   const div = document.createElement("div");
 
   const title = document.createElement("h2");
-  title.className = "section-title";
+  title.className = "section-title page-title";
   title.textContent = "Add Account";
   div.appendChild(title);
 

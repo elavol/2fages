@@ -523,6 +523,23 @@ button, .btn {
   }
 }
 
+/* Settings actions — side by side on wider screens */
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 480px) {
+  .settings-actions {
+    flex-direction: row;
+  }
+
+  .settings-actions button {
+    flex: 1;
+  }
+}
+
 /* Utilities */
 .mt-16 { margin-top: 16px; }
 .mb-16 { margin-bottom: 16px; }
@@ -580,7 +597,8 @@ button, .btn {
     padding: 16px 24px 32px;
   }
 
-  .top-bar {
+  .top-bar,
+  .page-title {
     display: none;
   }
 

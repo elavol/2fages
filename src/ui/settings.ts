@@ -20,16 +20,19 @@ export function renderSettings(
   const div = document.createElement("div");
 
   const title = document.createElement("h2");
-  title.className = "section-title";
+  title.className = "section-title page-title";
   title.textContent = "Settings";
   div.appendChild(title);
 
   const hasVault = callbacks.getEncryptedVault() !== null;
 
-  // Change passphrase
   if (hasVault) {
+    const btnRow = document.createElement("div");
+    btnRow.className = "settings-actions mb-16";
+
+    // Change passphrase
     const changeBtn = document.createElement("button");
-    changeBtn.className = "btn-primary mb-16";
+    changeBtn.className = "btn-primary";
     changeBtn.textContent = "Change Passphrase";
     changeBtn.addEventListener("click", () => {
       showPassphraseModal("Current Passphrase", async (oldPass) => {
@@ -51,13 +54,11 @@ export function renderSettings(
         }
       }, { submitLabel: "Continue" });
     });
-    div.appendChild(changeBtn);
-  }
+    btnRow.appendChild(changeBtn);
 
-  // Clear vault
-  if (hasVault) {
+    // Clear vault
     const clearBtn = document.createElement("button");
-    clearBtn.className = "btn-danger mb-16";
+    clearBtn.className = "btn-danger";
     clearBtn.textContent = "Clear Vault";
     clearBtn.addEventListener("click", () => {
       showConfirmModal(
@@ -71,7 +72,9 @@ export function renderSettings(
         "Clear All Data"
       );
     });
-    div.appendChild(clearBtn);
+    btnRow.appendChild(clearBtn);
+
+    div.appendChild(btnRow);
   }
 
   // About
