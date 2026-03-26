@@ -4,11 +4,9 @@ A single-HTML-file TOTP code generator, inspired by [totp-cli](https://github.co
 
 ## Why?
 
-Many people use a password manager for both passwords and TOTP codes. But to access the password manager itself, you often need a TOTP code — a chicken-and-egg problem.
+Many people use a password manager for both passwords and TOTP codes. But to access the password manager itself, you often need a TOTP code — a chicken-and-egg problem. It's always good practice to have more than one way in — recovery codes, backup apps, or recovery contacts.
 
-2fages solves this by letting you store your most critical TOTP secrets in an [age](https://age-encryption.org/)-encrypted file that can be kept anywhere public — a GitHub Gist, GitLab Snippet, Pastebin, or just a file on your desktop. You access them from any device with a browser.
-
-There are several good free and open source TOTP apps for mobile. But there is no way to verify that the binary on the App Store was built from the code on GitHub. 2fages ships as a single HTML file — what you see in the source is what runs in your browser.
+2fages is one more option: store your most critical TOTP secrets in an [age](https://age-encryption.org/)-encrypted file that can be kept anywhere public — a GitHub Gist, GitLab Snippet, Pastebin, or just a file on your desktop — and open them from any device with a browser. The entire app is a single HTML file you can audit and host yourself.
 
 ## Features
 
