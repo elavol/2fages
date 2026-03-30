@@ -276,6 +276,16 @@ function renderVaultList(
   }
 
   container.appendChild(list);
+
+  const lockBtn = document.createElement("button");
+  lockBtn.className = "btn-lock";
+  lockBtn.style.marginTop = "24px";
+  lockBtn.textContent = "Lock Vault";
+  lockBtn.addEventListener("click", () => {
+    callbacks.setCachedVault(null);
+    callbacks.onVaultChanged();
+  });
+  container.appendChild(lockBtn);
 }
 
 function showEditModal(

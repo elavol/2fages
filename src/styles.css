@@ -213,6 +213,23 @@ button, .btn {
   background: var(--danger-hover);
 }
 
+.btn-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background: #ea580c;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 500;
+  width: 100%;
+}
+
+.btn-lock:hover {
+  background: #c2410c;
+}
+
 .btn-secondary {
   display: inline-flex;
   align-items: center;
