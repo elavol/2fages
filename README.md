@@ -15,6 +15,7 @@ Many people use a password manager for both passwords and TOTP codes. But to acc
 - **Never persists plain secrets** — encrypted blob in localStorage, passphrase required every time
 - **Import/export** — paste encrypted text, upload `.age` files, or scan QR codes
 - **Auto-lock** — vault locks automatically after 15 minutes of inactivity, flushing decrypted secrets from memory
+- **Manual lock** — lock the vault instantly with one tap after use
 - **Inline codes** — all TOTP codes visible at once with live countdown timers after unlock
 - **Mobile-friendly** — responsive design, works on any device with a modern browser
 - **Offline capable** — works without internet after initial load
@@ -47,7 +48,7 @@ Open the hosted app at **[2fages.elavol.com](https://2fages.elavol.com)** or dow
 - Credentials are encrypted with [age](https://age-encryption.org/) using scrypt passphrase encryption (work factor 15)
 - The encrypted file is standard age format — you can decrypt it with `age -d` on the command line
 - Plain secrets exist only in JavaScript memory during code generation, never in the DOM or storage
-- Vault auto-locks after 15 minutes of inactivity, clearing decrypted data from memory
+- Vault auto-locks after 15 minutes of inactivity, or can be locked manually at any time — both clear decrypted data from memory
 - No analytics, no telemetry, no network calls after the page loads
 - The entire app is a single HTML file you can audit
 
